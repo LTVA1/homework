@@ -9,7 +9,7 @@
 
 #include <complex>
 
-#define NUMBER_OF_ITERATIONS 25
+#define NUMBER_OF_ITERATIONS 20
 #define MAX_STEPS 30
 
 #define PLOT_MANDELBROT
@@ -287,6 +287,33 @@ void flash_sort(int* a, int len, int unused) //1st arbitrary sort
 	free(__L);
 }
 
+void bubblesort_swap_check(int* a, int len, int unused)
+{
+	len++;
+
+	//sorted is initially false
+	int comps = len - 1;
+	int sorted = 0;
+
+	while (!sorted)	//comps reduces on each pass
+	{
+		sorted = 1; //set true for each pass
+
+		for (int i = 0; i < comps; i++)
+		{
+			if (a[i] > a[i + 1])
+			{
+				int temp = a[i];
+				a[i] = a[i + 1];
+				a[i + 1] = temp;
+				sorted = 0;	//not yet sorted
+			}
+		}	//end of each pass
+
+		comps--;
+	}
+}
+
 void insertion_sort_multithread(int* a, int len, int unused)
 {
 
@@ -329,6 +356,7 @@ const char* sorts[] = {
 	"selection sort",
 	"merge sort",
 	"flash sort",
+	"bubblesort with swap check",
 };
 
 struct ThreadData
@@ -337,7 +365,7 @@ struct ThreadData
 	int len;
 	ofstream* file_writer;
 	int scale_factor;
-	void (*sort)(int*, int);
+	void (*sort)(int*, int, int);
 	int sort_index;
 };
 
@@ -435,7 +463,9 @@ int main()
 	ofstream inssort("inssort.txt", ios::out);
 	ofstream selsort("selsort.txt", ios::out);
 	ofstream mergesort("mergesort.txt", ios::out);
+
 	ofstream flashsort("flashsort.txt", ios::out);
+	ofstream bubsort_swap_check("bubsort_swap_check.txt", ios::out);
 
 #ifdef PLOT_MANDELBROT
 	ofstream mandel("mandelbrot.txt", ios::out);
@@ -449,6 +479,7 @@ int main()
 		sort_wrap(i, selsort, 110, selection_sort, 3);
 		sort_wrap(i, mergesort, 500, merge_sort, 4);
 		sort_wrap(i, flashsort, 4000, flash_sort, 5);
+		sort_wrap(i, bubsort_swap_check, 70, bubblesort_swap_check, 6);
 
 		cout << "Sorting arrays, " << i << " of " << MAX_STEPS <<"...\n";
 	}
@@ -486,6 +517,7 @@ int main()
 	mergesort.close();
 
 	flashsort.close();
+	bubsort_swap_check.close();
 
 #ifdef PLOT_MANDELBROT
 	mandel.close();
@@ -493,7 +525,7 @@ int main()
 
 	FILE* gnuplot_fd;
 
-	if ((gnuplot_fd = _popen("gnuplot\\bin\\gnuplot", "w")) == NULL) //if ((gnuplot_fd = _popen("gnuplot", "w")) == NULL)
+	if ((gnuplot_fd = _popen("gnuplot\\bin\\gnuplot", "w")) == NULL)
 	{
 		fprintf(stderr, "Error opening pipe to gnuplot.\n");
 		exit(1);
@@ -510,12 +542,15 @@ int main()
 	plot(gnuplot_fd, "mergesort.txt", "MERGE SORT", 5);
 
 	plot(gnuplot_fd, "flashsort.txt", "FLASH SORT", 6);
+	plot(gnuplot_fd, "bubsort_swap_check.txt", "BUBBLE SORT WITH SWAP CHECK", 7);
 
 	system("pause");
 
 	fprintf(gnuplot_fd, "exit\n");
 
 	_pclose(gnuplot_fd);
+
+	cout << "\nHomework_1.cpp has left the building.\n";
 
 	return 0;
 }
