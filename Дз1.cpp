@@ -1,5 +1,4 @@
 ﻿#include <iostream>
-#include <Windows.h>
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,8 +10,9 @@
 #include <complex>
 
 #define NUMBER_OF_ITERATIONS 25
+#define MAX_STEPS 30
 
-//#define PLOT_MANDELBROT
+#define PLOT_MANDELBROT
 
 typedef uint64_t Uint64;
 typedef int64_t Sint64;
@@ -413,7 +413,7 @@ void plot_mandel(FILE* gnuplot_fd, const char* filename, const char* title, int 
 	fprintf(gnuplot_fd, "set xlabel \"Re\"\nset ylabel \"Im\"\n");
 	fprintf(gnuplot_fd, "plot \'");
 	fprintf(gnuplot_fd, filename);
-	fprintf(gnuplot_fd, "\' using 1:2 with points\n");
+	fprintf(gnuplot_fd, "\' using 1:2 with points pointtype 5\n");
 
 	fflush(gnuplot_fd);
 }
@@ -441,7 +441,7 @@ int main()
 	ofstream mandel("mandelbrot.txt", ios::out);
 #endif
 
-	for (int i = 1; i < 31; i++)
+	for (int i = 1; i < MAX_STEPS; i++)
 	{
 		sort_wrap(i, bubsort, 70, bubblesort, 0);
 		sort_wrap(i, qsort, 2600, quicksort, 1);
@@ -449,6 +449,8 @@ int main()
 		sort_wrap(i, selsort, 110, selection_sort, 3);
 		sort_wrap(i, mergesort, 500, merge_sort, 4);
 		sort_wrap(i, flashsort, 4000, flash_sort, 5);
+
+		cout << "Sorting arrays, " << i << " of " << MAX_STEPS <<"...\n";
 	}
 
 #ifdef PLOT_MANDELBROT
@@ -491,7 +493,7 @@ int main()
 
 	FILE* gnuplot_fd;
 
-	if ((gnuplot_fd = _popen("gnuplot\\bin\\gnuplot.exe", "w")) == NULL) //if ((gnuplot_fd = _popen("gnuplot", "w")) == NULL)
+	if ((gnuplot_fd = _popen("gnuplot\\bin\\gnuplot", "w")) == NULL) //if ((gnuplot_fd = _popen("gnuplot", "w")) == NULL)
 	{
 		fprintf(stderr, "Error opening pipe to gnuplot.\n");
 		exit(1);
