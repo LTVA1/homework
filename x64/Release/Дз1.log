@@ -1,0 +1,9 @@
+﻿  Дз1.cpp
+C:\Users\Georg\source\repos\homework\Дз1.cpp(198,8): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\Georg\source\repos\homework\Дз1.cpp(326,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Generating code
+  6 of 246 functions ( 2.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Дз1.vcxproj -> C:\Users\Georg\source\repos\homework\x64\Release\Дз1.exe

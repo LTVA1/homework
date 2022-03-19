@@ -1,0 +1,4 @@
+﻿  Дз1.cpp
+C:\Users\Georg\source\repos\homework\Дз1.cpp(198,8): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\Georg\source\repos\homework\Дз1.cpp(326,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Дз1.vcxproj -> C:\Users\Georg\source\repos\homework\x64\Debug\Дз1.exe
