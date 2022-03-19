@@ -9,10 +9,10 @@
 
 #include <complex>
 
-#define NUMBER_OF_ITERATIONS 20
+#define NUMBER_OF_ITERATIONS 50
 #define MAX_STEPS 30
 
-#define PLOT_MANDELBROT
+//#define PLOT_MANDELBROT
 
 typedef uint64_t Uint64;
 typedef int64_t Sint64;
@@ -359,7 +359,7 @@ const char* sorts[] = {
 	"bubblesort with swap check",
 };
 
-struct ThreadData
+/*struct ThreadData
 {
 	int* a;
 	int len;
@@ -370,7 +370,7 @@ struct ThreadData
 };
 
 bool threadFinished[8];
-ThreadData data[8];
+ThreadData data[8];*/
 
 void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(int*, int, int), int sort_index)
 {
@@ -411,7 +411,7 @@ void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(in
 	//_endthread();
 }
 
-void plot(FILE* gnuplot_fd, const char* filename, const char* title, int window_number)
+void plot(FILE* gnuplot_fd, const char* filename, const char* title, int window_number, bool plot_in_new_window)
 {
 	string s = to_string(window_number);
 
@@ -429,7 +429,7 @@ void plot(FILE* gnuplot_fd, const char* filename, const char* title, int window_
 }
 
 #ifdef PLOT_MANDELBROT
-void plot_mandel(FILE* gnuplot_fd, const char* filename, const char* title, int window_number)
+void plot_mandel(FILE* gnuplot_fd, const char* filename, const char* title, int window_number, bool plot_in_new_window)
 {
 	string s = to_string(window_number);
 
@@ -448,15 +448,15 @@ void plot_mandel(FILE* gnuplot_fd, const char* filename, const char* title, int 
 #endif
 
 #define max_iteration 30
-#define max_row 300
-#define max_column 300
+#define max_row 400
+#define max_column 800
 
 int main()
 {
-	for (int i = 0; i < 8; ++i)
+	/*for (int i = 0; i < 8; ++i)
 	{
 		threadFinished[i] = false;
-	}
+	}*/
 
 	ofstream bubsort("bubsort.txt", ios::out);
 	ofstream qsort("qsort.txt", ios::out);
@@ -532,17 +532,31 @@ int main()
 	}
 
 #ifdef PLOT_MANDELBROT
-	plot_mandel(gnuplot_fd, "mandelbrot.txt", "FRACTALS ARE BEAUTIFUL", 0);
+	plot_mandel(gnuplot_fd, "mandelbrot.txt", "FRACTALS ARE BEAUTIFUL", 0, true);
 #endif
 
-	plot(gnuplot_fd, "bubsort.txt", "BUBBLE SORT", 1);
-	plot(gnuplot_fd, "qsort.txt", "QUICK SORT", 2);
-	plot(gnuplot_fd, "inssort.txt", "INSERTION SORT", 3);
-	plot(gnuplot_fd, "selsort.txt", "SELECTION SORT", 4);
-	plot(gnuplot_fd, "mergesort.txt", "MERGE SORT", 5);
+	plot(gnuplot_fd, "bubsort.txt", "BUBBLE SORT", 1, true);
+	plot(gnuplot_fd, "qsort.txt", "QUICK SORT", 2, true);
+	plot(gnuplot_fd, "inssort.txt", "INSERTION SORT", 3, true);
+	plot(gnuplot_fd, "selsort.txt", "SELECTION SORT", 4, true);
+	plot(gnuplot_fd, "mergesort.txt", "MERGE SORT", 5, true);
 
-	plot(gnuplot_fd, "flashsort.txt", "FLASH SORT", 6);
-	plot(gnuplot_fd, "bubsort_swap_check.txt", "BUBBLE SORT WITH SWAP CHECK", 7);
+	plot(gnuplot_fd, "flashsort.txt", "FLASH SORT", 6, true);
+	plot(gnuplot_fd, "bubsort_swap_check.txt", "BUBBLE SORT WITH SWAP CHECK", 7, true);
+
+	/*fprintf(gnuplot_fd, "set terminal windows 1\n");
+	fprintf(gnuplot_fd, "set xlabel \"Number of a elements\"\n set ylabel \"Time (us)\"\n");
+	fprintf(gnuplot_fd, "set title \"SORTING ALGORITHMS\"\n");
+
+	fprintf(gnuplot_fd, "plot \"bubsort.txt\" using 1:2 title \"BUBBLE SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"qsort.txt\" using 1:2 title \"QUICK SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"inssort.txt\" using 1:2 title \"INSERTION SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"selsort.txt\" using 1:2 title \"SELECTION SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"mergesort.txt\" using 1:2 title \"MERGE SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"flashsort.txt\" using 1:2 title \"FLASH SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"bubsort_swap_check.txt\" using 1:2 title \"BUBBLE SORT WITH SWAP CHECK\" with linespoints\n");
+
+	fflush(gnuplot_fd);*/
 
 	system("pause");
 
