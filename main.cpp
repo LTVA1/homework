@@ -122,8 +122,8 @@ void merge(int arr[], int l, int m, int r)
 	int n2 = r - m;
 
 	/* create temp arrays */
-	int* L = (int*)malloc(sizeof(L) * n1);
-	int* R = (int*)malloc(sizeof(R) * n2);
+	int* L = (int*)malloc(sizeof(int) * n1);
+	int* R = (int*)malloc(sizeof(int) * n2);
 
 	/* Copy data to temp arrays L[] and R[] */
 	for (i = 0; i < n1; i++)
@@ -197,7 +197,7 @@ void merge_sort(int* a, int r, int l)
 
 void flash_sort(int* a, int len, int unused) //1st arbitrary sort
 {
-	int* __L = (int*)malloc(sizeof(__L) * len);
+	int* __L = (int*)malloc(sizeof(int) * len);
 
 	int m = len * 0.43;
 
@@ -334,9 +334,6 @@ struct insertionSortParams
 	int end;
 };
 
-//int unsorted[5000000];
-//int sorted[5000000];
-
 void* merge(void* args)
 {
 	//unpack parameters
@@ -421,31 +418,46 @@ void insertion_sort_multithread(int* a, int len, int unused)
 	//}
 
 	//define the indices of the two sublists
+	int* sorted_a = (int*)malloc(sizeof(int) * len);
+
+	int* start_points = (int*)malloc(sizeof(int) * NUM_OF_THREADS);
+	int* end_points = (int*)malloc(sizeof(int) * NUM_OF_THREADS);
+
+	//n sorting threads and 1 merge thread
+	pthread_t* threads = (pthread_t*)malloc(sizeof(pthread_t) * (NUM_OF_THREADS + 1));
+
 	int start1 = 0,
 		end1 = len / 2,
 		start2 = end1 + 1,
 		end2 = len - 1;
 
-	//2 sorting threads, and 1 merge thread
-	pthread_t threads[3];
+	int prev_end = 0;
+	//start_points[0] = 0;
 
-	int* sorted_a = (int*)malloc(sizeof(sorted_a) * len);
+	for(int i = 0; i < NUM_OF_THREADS; ++i)
+	{
+		start_points[i] = i == 0 ? 0 : prev_end + 1;
+		end_points[i] = len / NUM_OF_THREADS * (i + 1);
+		prev_end = end_points[i];
+	}
+
+	insertionSortParams* sArgs = (insertionSortParams*)malloc(sizeof(insertionSortParams) * NUM_OF_THREADS);
 
 	//prepare sorting params and fire off sorting threads
-	struct insertionSortParams sArgs[2];
-	sArgs[0].start = start1;
-	sArgs[0].end = end1;
-	sArgs[0].a = a;
-	pthread_create(&threads[0], NULL, insertionSort, &sArgs[0]); //deal with first sublist
+	for(int i = 0; i < NUM_OF_THREADS; ++i)
+	{
+		sArgs[i].start = start_points[i];
+		sArgs[i].end = end_points[i];
+		sArgs[i].a = a;
 
-	sArgs[1].start = start2;
-	sArgs[1].end = end2;
-	sArgs[1].a = a;
-	pthread_create(&threads[1], NULL, insertionSort, &sArgs[1]); //deal with second sublist
+		pthread_create(&threads[i], NULL, insertionSort, &sArgs[i]);
+	}
 
 	//wait for sorting threads to terminate
-	pthread_join(threads[0], NULL);
-	pthread_join(threads[1], NULL);
+	for(int i = 0; i < NUM_OF_THREADS; ++i)
+	{
+		pthread_join(threads[i], NULL);
+	}
 
 	//prepare params and fire off merging thread
 	struct mergeParams mArgs;
@@ -465,12 +477,16 @@ void insertion_sort_multithread(int* a, int len, int unused)
 		a[i] = sorted_a[i];
 	}
 
+	free(sArgs);
 	free(sorted_a);
+	free(start_points);
+	free(end_points);
+	free(threads);
 }
 
 void generate_array(int*& a, int len)
 {
-	a = (int*)malloc(sizeof(a) * len);
+	a = (int*)malloc(sizeof(int) * len);
 
 	srand(time(NULL));
 
@@ -509,19 +525,6 @@ const char* sorts[] = {
 	"multithreaded inserion sort",
 };
 
-/*struct ThreadData
-{
-	int* a;
-	int len;
-	ofstream* file_writer;
-	int scale_factor;
-	void (*sort)(int*, int, int);
-	int sort_index;
-};
-
-bool threadFinished[8];
-ThreadData data[8];*/
-
 void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(int*, int, int), int sort_index)
 {
 	int* a = nullptr;
@@ -556,9 +559,6 @@ void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(in
 	av_time /= NUMBER_OF_ITERATIONS * 1000;
 
 	file_writer << av_time << "\n";
-
-	//threadFinished[sort_index] = true;
-	//_endthread();
 }
 
 void plot(FILE* gnuplot_fd, const char* filename, const char* title, int window_number, bool plot_in_new_window)
@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
 		sort_wrap(i, qsort, 2800, quicksort, 1);
 		sort_wrap(i, inssort, 140, insertion_sort, 2);
 		sort_wrap(i, selsort, 100, selection_sort, 3);
-		sort_wrap(i, mergesort, 1200, merge_sort, 4);
+		sort_wrap(i, mergesort, 100, merge_sort, 4);
 		sort_wrap(i, flashsort, 5600, flash_sort, 5);
 		sort_wrap(i, bubsort_swap_check, 70, bubblesort_swap_check, 6);
 
