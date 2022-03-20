@@ -1,0 +1,5 @@
+C:/Users/Georg/Documents/Hw1/CMakeFiles/Hw1.dir
+C:/Users/Georg/Documents/Hw1/CMakeFiles/edit_cache.dir
+C:/Users/Georg/Documents/Hw1/CMakeFiles/rebuild_cache.dir
+C:/Users/Georg/Documents/Hw1/CMakeFiles/Hw1_autogen_timestamp_deps.dir
+C:/Users/Georg/Documents/Hw1/CMakeFiles/Hw1_autogen.dir
