@@ -9,7 +9,7 @@
 
 #include <complex>
 
-#define NUMBER_OF_ITERATIONS 50
+#define NUMBER_OF_ITERATIONS 30
 #define MAX_STEPS 30
 
 //#define PLOT_MANDELBROT
@@ -484,6 +484,8 @@ int main()
 		cout << "Sorting arrays, " << i << " of " << MAX_STEPS <<"...\n";
 	}
 
+	cout << "\n\nWe had 2 standard libraries, 11 strings in for cycle, 7 sorting algorithms, a memory half-full of arrays and a whole galaxy of data, arrays, random integers, graphs... Not that we strictly needed all of that for the module homework, but once you started desperate attempts of obtaining advanced standing for the course, the tendency is to push it as far as you can. The only thing that really worried me was the multithreaded sort. There is nothing in the world more annoying and complex and shooting itself in the leg than several threads writing simultaneously into one data structure, and I knew we'd get into that rotten stuff pretty soon.\n\n";
+
 #ifdef PLOT_MANDELBROT
 	for (int row = 0; row < max_row; ++row) //a little beautiful thing
 	{
@@ -544,8 +546,8 @@ int main()
 	plot(gnuplot_fd, "flashsort.txt", "FLASH SORT", 6, true);
 	plot(gnuplot_fd, "bubsort_swap_check.txt", "BUBBLE SORT WITH SWAP CHECK", 7, true);
 
-	/*fprintf(gnuplot_fd, "set terminal windows 1\n");
-	fprintf(gnuplot_fd, "set xlabel \"Number of a elements\"\n set ylabel \"Time (us)\"\n");
+	fprintf(gnuplot_fd, "set terminal windows 8\n");
+	fprintf(gnuplot_fd, "set xlabel \"Number of elements\"\n set ylabel \"Time (us)\"\n");
 	fprintf(gnuplot_fd, "set title \"SORTING ALGORITHMS\"\n");
 
 	fprintf(gnuplot_fd, "plot \"bubsort.txt\" using 1:2 title \"BUBBLE SORT\" with linespoints\n");
@@ -556,7 +558,7 @@ int main()
 	fprintf(gnuplot_fd, "replot \"flashsort.txt\" using 1:2 title \"FLASH SORT\" with linespoints\n");
 	fprintf(gnuplot_fd, "replot \"bubsort_swap_check.txt\" using 1:2 title \"BUBBLE SORT WITH SWAP CHECK\" with linespoints\n");
 
-	fflush(gnuplot_fd);*/
+	fflush(gnuplot_fd);
 
 	system("pause");
 
