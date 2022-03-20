@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <complex>
 
-#define NUMBER_OF_ITERATIONS 15 /*30*/
+#define NUMBER_OF_ITERATIONS 30 /*30*/
 #define MAX_STEPS 30
 #define NUM_OF_THREADS 2
 
