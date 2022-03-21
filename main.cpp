@@ -1,6 +1,3 @@
-#include <QCoreApplication>
-#include <QDebug>
-
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -14,7 +11,9 @@
 
 #define NUMBER_OF_ITERATIONS 30 /*30*/
 #define MAX_STEPS 30
-#define NUM_OF_THREADS 2
+#define NUM_OF_THREADS 6
+
+#define GLOBAL_SCALE_FACTOR 1
 
 //#define PLOT_MANDELBROT
 
@@ -94,21 +93,26 @@ void insertion_sort(int* a, int len, int unused)
 
 void selection_sort(int* a, int len, int unused)
 {
-	for (int i = 0; i < len; i++)
-	{
-		int minIndex = i;
+	len++;
 
-		for (int j = i + 1; j < len; j++)
+	int i, j, imin;
+
+	for(i = 0; i < len - 1; i++)
+	{
+		imin = i;   //get index of minimum data
+
+		for(j = i + 1; j < len; j++)
 		{
-			if (a[j] < a[minIndex])
-			{
-				minIndex = j;
-			}
+			 if(a[j] < a[imin])
+			 {
+				imin = j;
+			 }
 		}
 
+		//placing in correct position
 		int temp = a[i];
-		a[i] = a[minIndex];
-		a[minIndex] = temp;
+		a[i] = a[imin];
+		a[imin] = temp;
 	}
 }
 
@@ -197,6 +201,8 @@ void merge_sort(int* a, int r, int l)
 
 void flash_sort(int* a, int len, int unused) //1st arbitrary sort
 {
+	len++;
+
 	int* __L = (int*)malloc(sizeof(int) * len);
 
 	int m = len * 0.43;
@@ -366,7 +372,7 @@ void* merge(void* args)
 		sorted[tpos++] = unsorted[i++];
 	}
 
-	//still elements left over in first list. copy over
+	//still elements left over in second list. copy over
 	while (j <= end)
 	{
 		sorted[tpos++] = unsorted[j++];
@@ -412,32 +418,21 @@ void insertion_sort_multithread(int* a, int len, int unused)
 {
 	len++;
 
-	//for(int i = 0; i < len; ++i)
-	//{
-		//a[i] = unsorted[i];
-	//}
-
 	//define the indices of the two sublists
 	int* sorted_a = (int*)malloc(sizeof(int) * len);
 
 	int* start_points = (int*)malloc(sizeof(int) * NUM_OF_THREADS);
 	int* end_points = (int*)malloc(sizeof(int) * NUM_OF_THREADS);
 
-	//n sorting threads and 1 merge thread
-	pthread_t* threads = (pthread_t*)malloc(sizeof(pthread_t) * (NUM_OF_THREADS + 1));
-
-	int start1 = 0,
-		end1 = len / 2,
-		start2 = end1 + 1,
-		end2 = len - 1;
+	//n sorting threads
+	pthread_t* threads = (pthread_t*)malloc(sizeof(pthread_t) * (NUM_OF_THREADS));
 
 	int prev_end = 0;
-	//start_points[0] = 0;
 
 	for(int i = 0; i < NUM_OF_THREADS; ++i)
 	{
-		start_points[i] = i == 0 ? 0 : prev_end + 1;
-		end_points[i] = len / NUM_OF_THREADS * (i + 1);
+		start_points[i] = ((i == 0) ? 0 : (prev_end + 1));
+		end_points[i] = len / NUM_OF_THREADS * (i + 1) - 1;
 		prev_end = end_points[i];
 	}
 
@@ -459,17 +454,33 @@ void insertion_sort_multithread(int* a, int len, int unused)
 		pthread_join(threads[i], NULL);
 	}
 
-	//prepare params and fire off merging thread
+	/*for(int i = 0; i < len; ++i)
+	{
+		cout << a[i] << " ";
+	}
+
+	cout << "\n\n";
+
+	for(int i = 0; i < NUM_OF_THREADS; ++i)
+	{
+		cout << "Start point " << start_points[i] << " End point " << end_points[i] << "\n";
+	}
+
 	struct mergeParams mArgs;
-	mArgs.begin = start1;
-	mArgs.mid = start2;
-	mArgs.end = end2;
+
 	mArgs.a = a;
 	mArgs.sorted_a = sorted_a;
-	pthread_create(&threads[2], NULL, merge, &mArgs); //merge the sublists into sorted[]!
 
-	//wait for merging thread to terminate
-	pthread_join(threads[2], NULL);
+	for(int i = 1; i < NUM_OF_THREADS; ++i)
+	{
+		mArgs.begin = 0;
+		mArgs.mid = start_points[i];
+		mArgs.end = end_points[i];
+
+		merge(&mArgs);
+	}*/
+
+	insertion_sort(sorted_a, len - 1, 0);
 
 	//copy array
 	for (int i = 0; i < len; ++i)
@@ -477,17 +488,22 @@ void insertion_sort_multithread(int* a, int len, int unused)
 		a[i] = sorted_a[i];
 	}
 
+	/*cout << "\n\n";
+
+	for(int i = 0; i < len; ++i)
+	{
+		cout << a[i] << " ";
+	}*/
+
 	free(sArgs);
-	free(sorted_a);
 	free(start_points);
 	free(end_points);
 	free(threads);
+	free(sorted_a);
 }
 
 void generate_array(int*& a, int len)
 {
-	a = (int*)malloc(sizeof(int) * len);
-
 	srand(time(NULL));
 
 	for (int i = 0; i < len; ++i)
@@ -498,9 +514,9 @@ void generate_array(int*& a, int len)
 
 int check_array(int* a, int len)
 {
-	for (int i = 0; i < len - 2; i += 2)
+	for (int i = 0; i < len - 1; ++i)
 	{
-		if (a[i + 1] < a[i] || a[i + 2] < a[i + 1])
+		if (a[i] > a[i + 1])
 		{
 			return -1;
 		}
@@ -527,7 +543,7 @@ const char* sorts[] = {
 
 void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(int*, int, int), int sort_index)
 {
-	int* a = nullptr;
+	int* a = (int*)malloc(sizeof(int) * len * scale_factor);
 
 	Uint64 av_time = 0;
 
@@ -536,6 +552,8 @@ void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(in
 	for (int i = 0; i < NUMBER_OF_ITERATIONS; ++i)
 	{
 		generate_array(a, len * scale_factor);
+
+		//flash_sort(a, len * scale_factor - 1, 0); //for measuring time it takes to sort an already sorted array
 
 		auto begin = chrono::high_resolution_clock::now();
 
@@ -552,13 +570,14 @@ void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(in
 			exit(1);
 		}
 
-		delete_a(a);
 		av_time += chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 	}
 
 	av_time /= NUMBER_OF_ITERATIONS * 1000;
 
 	file_writer << av_time << "\n";
+
+	delete_a(a);
 }
 
 void plot(FILE* gnuplot_fd, const char* filename, const char* title, int window_number, bool plot_in_new_window)
@@ -603,13 +622,6 @@ void plot_mandel(FILE* gnuplot_fd, const char* filename, const char* title, int 
 
 int main(int argc, char *argv[])
 {
-	QCoreApplication a(argc, argv);
-
-	/*for (int i = 0; i < 8; ++i)
-	{
-		threadFinished[i] = false;
-	}*/
-
 	ofstream bubsort("bubsort.txt", ios::out);
 	ofstream qsort("qsort.txt", ios::out);
 	ofstream inssort("inssort.txt", ios::out);
@@ -627,15 +639,15 @@ int main(int argc, char *argv[])
 
 	for (int i = 1; i < MAX_STEPS; i++)
 	{
-		sort_wrap(i, bubsort, 70, bubblesort, 0);
-		sort_wrap(i, qsort, 2800, quicksort, 1);
-		sort_wrap(i, inssort, 140, insertion_sort, 2);
-		sort_wrap(i, selsort, 100, selection_sort, 3);
-		sort_wrap(i, mergesort, 100, merge_sort, 4);
-		sort_wrap(i, flashsort, 5600, flash_sort, 5);
-		sort_wrap(i, bubsort_swap_check, 70, bubblesort_swap_check, 6);
+		sort_wrap(i, bubsort, 80 * GLOBAL_SCALE_FACTOR, bubblesort, 0);
+		sort_wrap(i, qsort, 2800 * GLOBAL_SCALE_FACTOR, quicksort, 1);
+		sort_wrap(i, inssort, 140 * GLOBAL_SCALE_FACTOR, insertion_sort, 2);
+		sort_wrap(i, selsort, 100 * GLOBAL_SCALE_FACTOR, selection_sort, 3);
+		sort_wrap(i, mergesort, 1400 * GLOBAL_SCALE_FACTOR, merge_sort, 4);
+		sort_wrap(i, flashsort, 5600 * GLOBAL_SCALE_FACTOR, flash_sort, 5);
+		sort_wrap(i, bubsort_swap_check, 80 * GLOBAL_SCALE_FACTOR, bubblesort_swap_check, 6);
 
-		sort_wrap(i, inssort_mt, 150 * NUM_OF_THREADS, insertion_sort_multithread, 7);
+		sort_wrap(i, inssort_mt, 130 * NUM_OF_THREADS * GLOBAL_SCALE_FACTOR, insertion_sort_multithread, 7); //150
 
 		cout << "Sorting arrays, " << i << " of " << MAX_STEPS <<"...\n";
 	}
@@ -645,7 +657,7 @@ int main(int argc, char *argv[])
 #ifdef PLOT_MANDELBROT
 	for (int row = 0; row < max_row; ++row) //a little beautiful thing
 	{
-		for (int column = 0; column < max_column; ++column)
+		for (int column = 0; column < max_column; ++column) //nobody can resist a quick Mandelbrot whenever there is an XY plane to draw on
 		{
 			complex<double> z, c =
 			{
@@ -721,6 +733,22 @@ int main(int argc, char *argv[])
 
 	fflush(gnuplot_fd);
 
+	fprintf(gnuplot_fd, "set terminal windows 10\n");
+	fprintf(gnuplot_fd, "set logscale x 2"); //logarithmic scale (log2(x))
+	fprintf(gnuplot_fd, "set xlabel \"Number of elements\"\n set ylabel \"Time (us)\"\n");
+	fprintf(gnuplot_fd, "set title \"SORTING ALGORITHMS (LOG SCALE)\"\n");
+
+	fprintf(gnuplot_fd, "plot \"bubsort.txt\" using 1:2 title \"BUBBLE SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"qsort.txt\" using 1:2 title \"QUICK SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"inssort.txt\" using 1:2 title \"INSERTION SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"selsort.txt\" using 1:2 title \"SELECTION SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"mergesort.txt\" using 1:2 title \"MERGE SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"flashsort.txt\" using 1:2 title \"FLASH SORT\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"bubsort_swap_check.txt\" using 1:2 title \"BUBBLE SORT WITH SWAP CHECK\" with linespoints\n");
+	fprintf(gnuplot_fd, "replot \"inssort_mt.txt\" using 1:2 title \"MULTITHREADED INSERTION SORT\" with linespoints\n");
+
+	fflush(gnuplot_fd);
+
 	system("pause");
 
 	fprintf(gnuplot_fd, "exit\n");
@@ -728,6 +756,4 @@ int main(int argc, char *argv[])
 	_pclose(gnuplot_fd);
 
 	cout << "\nHomework_1.cpp has left the building.\n";
-
-	return a.exec();
 }
