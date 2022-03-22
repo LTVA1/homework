@@ -11,7 +11,7 @@
 
 #define NUMBER_OF_ITERATIONS 30 /*30*/
 #define MAX_STEPS 30
-#define NUM_OF_THREADS 6
+#define NUM_OF_THREADS 3
 
 #define GLOBAL_SCALE_FACTOR 1
 
@@ -234,6 +234,7 @@ void flash_sort(int* a, int len, int unused) //1st arbitrary sort
 
 	if (Mx == Mn)
 	{
+		free(__L);
 		return;
 	}
 
@@ -340,47 +341,6 @@ struct insertionSortParams
 	int end;
 };
 
-void* merge(void* args)
-{
-	//unpack parameters
-	struct mergeParams* params = (struct mergeParams*)args;
-	int begin = params->begin,
-		mid = params->mid,
-		end = params->end;
-
-	int* unsorted = params->a;
-	int* sorted = params->sorted_a;
-
-	int i = begin, j = mid, tpos = begin;
-
-	while (i < mid && j <= end)
-	{
-		if (unsorted[i] < unsorted[j])
-		{
-			sorted[tpos++] = unsorted[i++];
-		}
-
-		else
-		{
-			sorted[tpos++] = unsorted[j++];
-		}
-	}
-
-	//still elements left over in first list. copy over
-	while (i < mid)
-	{
-		sorted[tpos++] = unsorted[i++];
-	}
-
-	//still elements left over in second list. copy over
-	while (j <= end)
-	{
-		sorted[tpos++] = unsorted[j++];
-	}
-
-	return NULL;
-}
-
 void* insertionSort(void* args)
 {
 	struct insertionSortParams* params = (struct insertionSortParams*)args;
@@ -454,32 +414,6 @@ void insertion_sort_multithread(int* a, int len, int unused)
 		pthread_join(threads[i], NULL);
 	}
 
-	/*for(int i = 0; i < len; ++i)
-	{
-		cout << a[i] << " ";
-	}
-
-	cout << "\n\n";
-
-	for(int i = 0; i < NUM_OF_THREADS; ++i)
-	{
-		cout << "Start point " << start_points[i] << " End point " << end_points[i] << "\n";
-	}
-
-	struct mergeParams mArgs;
-
-	mArgs.a = a;
-	mArgs.sorted_a = sorted_a;
-
-	for(int i = 1; i < NUM_OF_THREADS; ++i)
-	{
-		mArgs.begin = 0;
-		mArgs.mid = start_points[i];
-		mArgs.end = end_points[i];
-
-		merge(&mArgs);
-	}*/
-
 	insertion_sort(sorted_a, len - 1, 0);
 
 	//copy array
@@ -487,13 +421,6 @@ void insertion_sort_multithread(int* a, int len, int unused)
 	{
 		a[i] = sorted_a[i];
 	}
-
-	/*cout << "\n\n";
-
-	for(int i = 0; i < len; ++i)
-	{
-		cout << a[i] << " ";
-	}*/
 
 	free(sArgs);
 	free(start_points);
@@ -541,10 +468,8 @@ const char* sorts[] = {
 	"multithreaded inserion sort",
 };
 
-void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(int*, int, int), int sort_index)
+void sort_wrap(int* a, int len, ofstream& file_writer, int scale_factor, void (*sort)(int*, int, int), int sort_index)
 {
-	int* a = (int*)malloc(sizeof(int) * len * scale_factor);
-
 	Uint64 av_time = 0;
 
 	file_writer << len * scale_factor << "\t";
@@ -561,13 +486,16 @@ void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(in
 
 		auto end = chrono::high_resolution_clock::now();
 
-		int result = check_array(a, len * scale_factor);
-
-		if (result == -1)
+		if(len == 1)
 		{
-			cout << "\n\nRuntime error: " << sorts[sort_index] << " failed.\n\n" << endl;
-			system("pause");
-			exit(1);
+			int result = check_array(a, len * scale_factor);
+
+			if (result == -1)
+			{
+				cout << "\n\nRuntime error: " << sorts[sort_index] << " failed.\n\n" << endl;
+				system("pause");
+				exit(1);
+			}
 		}
 
 		av_time += chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
@@ -576,8 +504,6 @@ void sort_wrap(int len, ofstream& file_writer, int scale_factor, void (*sort)(in
 	av_time /= NUMBER_OF_ITERATIONS * 1000;
 
 	file_writer << av_time << "\n";
-
-	delete_a(a);
 }
 
 void plot(FILE* gnuplot_fd, const char* filename, const char* title, int window_number, bool plot_in_new_window)
@@ -617,7 +543,7 @@ void plot_mandel(FILE* gnuplot_fd, const char* filename, const char* title, int 
 #endif
 
 #define max_iteration 30
-#define max_row 400
+#define max_row 800
 #define max_column 800
 
 int main(int argc, char *argv[])
@@ -637,20 +563,24 @@ int main(int argc, char *argv[])
 	ofstream mandel("mandelbrot.txt", ios::out);
 #endif
 
+	int* a = (int*)malloc(sizeof(int) * MAX_STEPS * GLOBAL_SCALE_FACTOR * max(130 * NUM_OF_THREADS, 5600));
+
 	for (int i = 1; i < MAX_STEPS; i++)
 	{
-		sort_wrap(i, bubsort, 80 * GLOBAL_SCALE_FACTOR, bubblesort, 0);
-		sort_wrap(i, qsort, 2800 * GLOBAL_SCALE_FACTOR, quicksort, 1);
-		sort_wrap(i, inssort, 140 * GLOBAL_SCALE_FACTOR, insertion_sort, 2);
-		sort_wrap(i, selsort, 100 * GLOBAL_SCALE_FACTOR, selection_sort, 3);
-		sort_wrap(i, mergesort, 1400 * GLOBAL_SCALE_FACTOR, merge_sort, 4);
-		sort_wrap(i, flashsort, 5600 * GLOBAL_SCALE_FACTOR, flash_sort, 5);
-		sort_wrap(i, bubsort_swap_check, 80 * GLOBAL_SCALE_FACTOR, bubblesort_swap_check, 6);
+		sort_wrap(a, i, bubsort, 80 * GLOBAL_SCALE_FACTOR, bubblesort, 0);
+		sort_wrap(a, i, qsort, 2800 * GLOBAL_SCALE_FACTOR, quicksort, 1);
+		sort_wrap(a, i, inssort, 140 * GLOBAL_SCALE_FACTOR, insertion_sort, 2);
+		sort_wrap(a, i, selsort, 100 * GLOBAL_SCALE_FACTOR, selection_sort, 3);
+		sort_wrap(a, i, mergesort, 1400 * GLOBAL_SCALE_FACTOR, merge_sort, 4);
+		sort_wrap(a, i, flashsort, 5600 * GLOBAL_SCALE_FACTOR, flash_sort, 5);
+		sort_wrap(a, i, bubsort_swap_check, 80 * GLOBAL_SCALE_FACTOR, bubblesort_swap_check, 6);
 
-		sort_wrap(i, inssort_mt, 130 * NUM_OF_THREADS * GLOBAL_SCALE_FACTOR, insertion_sort_multithread, 7); //150
+		sort_wrap(a, i, inssort_mt, 130 * NUM_OF_THREADS * GLOBAL_SCALE_FACTOR, insertion_sort_multithread, 7);
 
 		cout << "Sorting arrays, " << i << " of " << MAX_STEPS <<"...\n";
 	}
+
+	delete_a(a);
 
 	cout << "\n\nWe had 2 standard libraries, 11 strings in for cycle, 7 sorting algorithms, a memory half-full of arrays and a whole galaxy of data, arrays, random integers, graphs... Not that we strictly needed all of that for the module homework, but once you started desperate attempts of obtaining advanced standing for the course, the tendency is to push it as far as you can. The only thing that really worried me was the multithreaded sort. There is nothing in the world more annoying and complex and shooting itself in the leg than several threads writing simultaneously into one data structure, and I knew we'd get into that rotten stuff pretty soon.\n\n";
 
