@@ -457,7 +457,8 @@ void delete_a(int* a)
 	free(a);
 }
 
-const char* sorts[] = {
+const char* sorts[] =
+{
 	"bubble sort",
 	"quick sort",
 	"insertion sort",
