@@ -665,7 +665,8 @@ int main(int argc, char *argv[])
 	fflush(gnuplot_fd);
 
 	fprintf(gnuplot_fd, "set terminal windows 10\n");
-	fprintf(gnuplot_fd, "set logscale x 2"); //logarithmic scale (log2(x))
+    fprintf(gnuplot_fd, "set logscale x 2\n"); //logarithmic scale (log2(x))
+    fprintf(gnuplot_fd, "set logscale y 2");
 	fprintf(gnuplot_fd, "set xlabel \"Number of elements\"\n set ylabel \"Time (us)\"\n");
 	fprintf(gnuplot_fd, "set title \"SORTING ALGORITHMS (LOG SCALE)\"\n");
 
