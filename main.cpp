@@ -212,6 +212,7 @@ void flash_sort(int* a, int len, int unused) //1st arbitrary sort
 		m = 2;
 	}
 
+	//zero array
 	for (int i = 0; i < m; ++i)
 	{
 		__L[i] = 0;
@@ -251,6 +252,7 @@ void flash_sort(int* a, int len, int unused) //1st arbitrary sort
 	}
 
 	//step 2
+	//putting elements on approx. their positions
 	int count = 0;
 	int i = 0;
 
@@ -276,6 +278,7 @@ void flash_sort(int* a, int len, int unused) //1st arbitrary sort
 	}
 
 	//step 3
+	//kind of insertion sort
 	for (int k = 1; k < m; ++k)
 	{
 		for (int i = __L[k] - 2; i >= __L[k - 1]; --i)
@@ -479,7 +482,7 @@ void sort_wrap(int* a, int len, ofstream& file_writer, int scale_factor, void (*
 	{
 		generate_array(a, len * scale_factor);
 
-		//flash_sort(a, len * scale_factor - 1, 0); //for measuring time it takes to sort an already sorted array
+		flash_sort(a, len * scale_factor - 1, 0); //for measuring time it takes to sort an already sorted array
 
 		auto begin = chrono::high_resolution_clock::now();
 
@@ -487,7 +490,7 @@ void sort_wrap(int* a, int len, ofstream& file_writer, int scale_factor, void (*
 
 		auto end = chrono::high_resolution_clock::now();
 
-		if(i == 1)
+		if(i == 0)
 		{
 			int result = check_array(a, len * scale_factor);
 
@@ -516,7 +519,7 @@ void plot(FILE* gnuplot_fd, const char* filename, const char* title, int window_
 	fprintf(gnuplot_fd, "\nset title \'");
 	fprintf(gnuplot_fd, title);
 	fprintf(gnuplot_fd, "\'\n");
-	fprintf(gnuplot_fd, "set xlabel \"Number of a elements\"\nset ylabel \"Time (us)\"\n");
+	fprintf(gnuplot_fd, "set xlabel \"Number of elements\"\nset ylabel \"Time (us)\"\n");
 	fprintf(gnuplot_fd, "plot \'");
 	fprintf(gnuplot_fd, filename);
 	fprintf(gnuplot_fd, "\' using 1:2 with linespoints\n");
@@ -666,7 +669,7 @@ int main(int argc, char *argv[])
 
 	fprintf(gnuplot_fd, "set terminal windows 10\n");
 	fprintf(gnuplot_fd, "set logscale x 2\n"); //logarithmic scale (log2(x))
-	fprintf(gnuplot_fd, "set logscale y 2");
+	fprintf(gnuplot_fd, "set logscale y 2\n");
 	fprintf(gnuplot_fd, "set xlabel \"Number of elements\"\n set ylabel \"Time (us)\"\n");
 	fprintf(gnuplot_fd, "set title \"SORTING ALGORITHMS (LOG SCALE)\"\n");
 
