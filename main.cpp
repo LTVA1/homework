@@ -487,7 +487,7 @@ void sort_wrap(int* a, int len, ofstream& file_writer, int scale_factor, void (*
 
 		auto end = chrono::high_resolution_clock::now();
 
-		if(len == 1)
+		if(i == 1)
 		{
 			int result = check_array(a, len * scale_factor);
 
@@ -576,7 +576,7 @@ int main(int argc, char *argv[])
 		sort_wrap(a, i, flashsort, 5600 * GLOBAL_SCALE_FACTOR, flash_sort, 5);
 		sort_wrap(a, i, bubsort_swap_check, 80 * GLOBAL_SCALE_FACTOR, bubblesort_swap_check, 6);
 
-		sort_wrap(a, i, inssort_mt, 130 * NUM_OF_THREADS * GLOBAL_SCALE_FACTOR, insertion_sort_multithread, 7);
+		sort_wrap(a, i, inssort_mt, 150 * NUM_OF_THREADS * GLOBAL_SCALE_FACTOR, insertion_sort_multithread, 7);
 
 		cout << "Sorting arrays, " << i << " of " << MAX_STEPS <<"...\n";
 	}
