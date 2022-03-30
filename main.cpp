@@ -631,6 +631,11 @@ int main(int argc, char *argv[])
 
 	FILE* gnuplot_fd;
 
+    if ((gnuplot_fd = _popen("gnuplot", "w")) == NULL)
+    {
+        cout << "\nDid not find gnuplot in environment variables. Will try to look for it in local folder.\n";
+    }
+
 	if ((gnuplot_fd = _popen("gnuplot\\bin\\gnuplot", "w")) == NULL)
 	{
 		fprintf(stderr, "Error opening pipe to gnuplot.\n");
